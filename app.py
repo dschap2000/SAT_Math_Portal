@@ -83,15 +83,15 @@ if uploaded_file is not None:
         st.balloons()
         
         # Load the Answer Key PDF to be downloaded
-        # Make sure 'sat_math_answer_key.pdf' is in the same directory as this script
+        # Make sure 'SAT_Math_Answer_Key.pdf' is in the same directory as this script
         try:
-            with open("sat_math_answer_key.pdf", "rb") as pdf_file:
+            with open("SAT_Math_Answer_Key.pdf", "rb") as pdf_file:
                 PDFbyte = pdf_file.read()
             
             st.download_button(
                 label="📥 Download Answer Key",
                 data=PDFbyte,
-                file_name="sat_math_answer_key.pdf",
+                file_name="SAT_Math_Answer_Key.pdf",
                 mime="application/pdf",
                 type="primary"
             )
