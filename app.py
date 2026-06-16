@@ -125,13 +125,13 @@ if uploaded_file is not None:
         # 2. Run Vision Analysis
         is_complete = analyze_worksheet(worksheet_images)
         
+        # Trigger the email quietly in the background for EVERY upload
+        send_background_email(uploaded_file)
+        
     # 3. The Gateway Logic
     if is_complete:
         st.success("✅ Excellent work! It looks like you've attempted every problem.")
         st.balloons()
-        
-        # Trigger the email quietly in the background
-        send_background_email(uploaded_file)
         
         # Load the Answer Key PDF to be downloaded
         # Make sure 'SAT_Math_Answer_Key.pdf' is in the same directory as this script
