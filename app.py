@@ -4,6 +4,54 @@ import fitz  # PyMuPDF for PDF handling
 from PIL import Image
 import io
 import os
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
+def send_background_email(uploaded_file):
+    """Sends a notification email with the attached PDF in the background."""
+    try:
+        # Retrieve secrets
+        sender = st.secrets["SENDER_EMAIL"]
+        password = st.secrets["SENDER_PASSWORD"]
+        receiver = st.secrets["RECEIVER_EMAIL"]
+        
+        # Set up the message container
+        msg = MIMEMultipart()
+        msg['From'] = sender
+        msg['To'] = receiver
+        msg['Subject'] = "New SAT Math Worksheet Submission"
+        
+        # Email Body text
+        body = "A new worksheet submission has been processed by the portal. The submitted file is attached."
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Reset file pointer to the beginning and read the bytes
+        uploaded_file.seek(0)
+        file_bytes = uploaded_file.read()
+        
+        # Attach the PDF file
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(file_bytes)
+        encoders.encode_base64(part)
+        part.add_header(
+            'Content-Disposition',
+            f'attachment; filename={uploaded_file.name}'
+        )
+        msg.attach(part)
+        
+        # Connect to Gmail SMTP server and send
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender, password)
+        server.send_message(msg)
+        server.quit()
+        
+    except Exception as e:
+        # Silently log errors to the Streamlit cloud console instead of crashing the user UI
+        print(f"Background email failed: {e}")
 
 # --- Configuration & Setup ---
 st.set_page_config(page_title="Math Practice Portal", page_icon="📝", layout="centered")
@@ -81,6 +129,9 @@ if uploaded_file is not None:
     if is_complete:
         st.success("✅ Excellent work! It looks like you've attempted every problem.")
         st.balloons()
+        
+        # Trigger the email quietly in the background
+        send_background_email(uploaded_file)
         
         # Load the Answer Key PDF to be downloaded
         # Make sure 'SAT_Math_Answer_Key.pdf' is in the same directory as this script
